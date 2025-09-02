@@ -27,7 +27,7 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(hpp());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://administer-front.vercel.app/'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://administer-front-g4uwea2wh-jordivanns-projects.vercel.app'],
   methods: ['GET','POST','PUT','PATCH','DELETE'],
   allowedHeaders: ['Content-Type','Authorization'],
 }));
