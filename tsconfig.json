@@ -4,11 +4,11 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src", "scripts", "scripts"]
+  "include": ["src"]         // (los scripts corrélos con tsx, no hace falta compilarlos)
 }
