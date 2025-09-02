@@ -69,6 +69,16 @@ app.use('/cuentas-lospipinos', auth, cuentasLosPipinos);
 app.use('/facturas', auth, facturas );
 app.use('/payments', auth, payments );
 app.use(transactions_import);
+app.use((err: any, req: any, res: any, _next: any) => {
+  console.error('Unhandled error:', {
+    method: req.method,
+    path: req.path,
+    msg: err?.message,
+    stack: err?.stack,
+  });
+  if (res.headersSent) return;
+  res.status(err?.status ?? 500).json({ error: err?.message ?? 'Internal Server Error' });
+});
 
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));

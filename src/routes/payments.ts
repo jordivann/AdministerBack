@@ -10,6 +10,9 @@ const router = Router();
 /* =============== Schemas =============== */
 /** Estados alineados a app.payment_status */
 const Estado = z.enum(['Pendiente', 'Parcial', 'Pagada', 'Cancelada']);
+const asyncH = (fn: any) => (req: any, res: any, next: any) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
 
 const QList = z.object({
   q: z.string().trim().optional(),                 // busca en num_fc / detalle / cliente
@@ -48,7 +51,7 @@ const EstadoBody = z.object({
 const PatchBody = CreateBody.partial();
 
 /* =============== Listar (logueados) =============== */
-router.get('/', async (req: AuthedRequest, res) => {
+router.get('/', asyncH(async (req: AuthedRequest, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string | z.core.$ZodFlattenedError<{ limit: number; offset: number; q?: string | undefined; estado?: "Pendiente" | "Parcial" | "Pagada" | "Cancelada" | undefined; fund_id?: string | undefined; provider_id?: string | undefined; from?: Date | undefined; to?: Date | undefined; vto_from?: Date | undefined; vto_to?: Date | undefined; }, string>; }): any; new(): any; }; }; json: (arg0: any[]) => void; }) => {
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
@@ -128,10 +131,10 @@ router.get('/', async (req: AuthedRequest, res) => {
 
   const rows = await withUser(userId, (c) => c.query(sql, params).then(r => r.rows));
   res.json(rows);
-});
+}));
 
 /* =============== Obtener 1 (logueados) =============== */
-router.get('/:id', async (req: AuthedRequest, res) => {
+router.get('/:id', asyncH(async (req: AuthedRequest, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string; }): any; new(): any; }; }; json: (arg0: any) => void; }) => {
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: 'No autenticado' });
   const { id } = req.params;
@@ -185,10 +188,10 @@ router.get('/:id', async (req: AuthedRequest, res) => {
   const row = await withUser(userId, (c) => c.query(sql, [id, userId]).then(r => r.rows[0]));
   if (!row) return res.status(404).json({ error: 'No encontrado o sin permiso' });
   res.json(row.payment);
-});
+}));
 
 /* =============== Crear (admin) =============== */
-router.post('/', requireRole('admin'), async (req: AuthedRequest, res: Response) => {
+router.post('/', requireRole('admin'), asyncH(async (req: AuthedRequest, res: Response) => {
   const userId = req.user!.id;
   const parsed = CreateBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -219,10 +222,10 @@ router.post('/', requireRole('admin'), async (req: AuthedRequest, res: Response)
   );
 
   res.status(201).json({ id: rows[0].id });
-});
+}));
 
 /* =============== Editar (admin) =============== */
-router.patch('/:id', requireRole('admin'), async (req: AuthedRequest, res: Response) => {
+router.patch('/:id', requireRole('admin'), asyncH(async (req: AuthedRequest, res: Response) => {
   const userId = req.user!.id;
   const { id } = req.params;
   const parsed = PatchBody.safeParse(req.body);
@@ -261,10 +264,10 @@ router.patch('/:id', requireRole('admin'), async (req: AuthedRequest, res: Respo
   );
   if (!row) return res.status(404).json({ error: 'No encontrado' });
   res.json({ id: row.id, updated: true });
-});
+}));
 
 /* =============== Cambiar estado (admin) =============== */
-router.patch('/:id/estado', requireRole('admin'), async (req: AuthedRequest, res) => {
+router.patch('/:id/estado', requireRole('admin'), asyncH(async (req: AuthedRequest, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string | z.core.$ZodFlattenedError<{ estado: "Pendiente" | "Parcial" | "Pagada" | "Cancelada"; }, string>; }): any; new(): any; }; }; json: (arg0: any) => void; }) => {
   const userId = req.user!.id;
   const { id } = req.params;
 
@@ -285,6 +288,6 @@ router.patch('/:id/estado', requireRole('admin'), async (req: AuthedRequest, res
 
   if (!row) return res.status(404).json({ error: 'No encontrado' });
   res.json(row);
-});
+}));
 
 export default router;
