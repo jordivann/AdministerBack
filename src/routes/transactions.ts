@@ -116,8 +116,8 @@ router.get('/', async (req: AuthedRequest, res) => {
              on efa.fund_id = v.fund_id and efa.user_id = $1
       cross join is_admin ia
       where (ia.ok = true or efa.user_id is not null)
-        and ($2::date  is null or v.tx_date    >= $2::date)
-        and ($3::date  is null or v.tx_date    <= $3::date)
+        and ($2::date  is null or v.tx_date >= $2::date)
+        and ($3::date  is null or v.tx_date <  ($3::date + 1))
         and ($4::uuid  is null or v.fund_id    =  $4::uuid)
         and ($5::uuid  is null or v.account_id =  $5::uuid)
         and ($6::uuid  is null or t.category_id=  $6::uuid)
