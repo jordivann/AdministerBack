@@ -101,16 +101,16 @@ router.get('/', async (req: AuthedRequest, res) => {
       f.client_id,
       c.name as client_name,
       f.numero,
-      f.fecha_emision,         -- DATE en DB
-      f.fecha_vencimiento,     -- DATE en DB
+      to_char(f.fecha_emision::date,     'YYYY-MM-DD') as fecha_emision,
+      to_char(f.fecha_vencimiento::date, 'YYYY-MM-DD') as fecha_vencimiento,
       f.monto_total,
       round((f.monto_total / 1.21)::numeric, 2) as neto,
       round((f.monto_total - (f.monto_total / 1.21))::numeric, 2) as iva,
       f.pdf_url,
       f.estado,
       f.notas,
-      f.created_at,            -- timestamptz (UTC)
-      f.updated_at
+      to_char(f.created_at::date, 'YYYY-MM-DD') as created_at,
+      to_char(f.updated_at::date, 'YYYY-MM-DD') as updated_at
     from app.facturas f
     left join app.clients c on c.id = f.client_id
     , me
@@ -148,22 +148,23 @@ router.get('/:id', async (req: AuthedRequest, res) => {
          and rfa.scope in ('read','write','admin')
     )
     select json_build_object(
-      'id', f.id,
-      'fund_id', f.fund_id,
-      'client_id', f.client_id,
-      'client_name', c.name,
-      'numero', f.numero,
-      'fecha_emision', f.fecha_emision,
-      'fecha_vencimiento', f.fecha_vencimiento,
-      'monto_total', f.monto_total,
-      'neto', round((f.monto_total / 1.21)::numeric, 2),
-      'iva',  round((f.monto_total - (f.monto_total / 1.21))::numeric, 2),
-      'pdf_url', f.pdf_url,
-      'estado', f.estado,
-      'notas', f.notas,
-      'created_at', f.created_at,
-      'updated_at', f.updated_at
+      'id',               f.id,
+      'fund_id',          f.fund_id,
+      'client_id',        f.client_id,
+      'client_name',      c.name,
+      'numero',           f.numero,
+      'fecha_emision',     to_char(f.fecha_emision::date,     'YYYY-MM-DD'),
+      'fecha_vencimiento', to_char(f.fecha_vencimiento::date, 'YYYY-MM-DD'),
+      'monto_total',      f.monto_total,           -- opcional: ::float8
+      'neto',             round((f.monto_total / 1.21)::numeric, 2),
+      'iva',              round((f.monto_total - (f.monto_total / 1.21))::numeric, 2),
+      'pdf_url',          f.pdf_url,
+      'estado',           f.estado,
+      'notas',            f.notas,
+      'created_at',       to_char(f.created_at::date, 'YYYY-MM-DD'),
+      'updated_at',       to_char(f.updated_at::date, 'YYYY-MM-DD')
     ) as factura
+
     from app.facturas f
     left join app.clients c on c.id = f.client_id
     , me
