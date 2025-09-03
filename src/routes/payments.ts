@@ -111,18 +111,18 @@ router.get(
         p.factura_id,
         p.num_fc,
         p.detalle,
-        p.fecha_emision,       -- DATE en DB
-        p.fecha_vencimiento,   -- DATE en DB
-        p.fecha_pago,          -- DATE (si la tenés)
-        p.monto_total,
-        p.monto_pagado,
-        p.saldo_pendiente,
+        to_char(p.fecha_emision::date,     'YYYY-MM-DD') as fecha_emision,
+        to_char(p.fecha_vencimiento::date, 'YYYY-MM-DD') as fecha_vencimiento,
+        to_char(p.fecha_pago::date,        'YYYY-MM-DD') as fecha_pago,
+        p.monto_total::float8      as monto_total,
+        p.monto_pagado::float8     as monto_pagado,
+        p.saldo_pendiente::float8  as saldo_pendiente,
         p.metodo_pago,
         p.comprobante_url,
         p.estado,
         p.notas,
-        p.created_at,          -- timestamptz (UTC)
-        p.updated_at
+        to_char(p.created_at::date, 'YYYY-MM-DD') as created_at,
+        to_char(p.updated_at::date, 'YYYY-MM-DD') as updated_at
       from app.payments p
       left join app.clients prv on prv.id = p.provider_id
       , me
@@ -131,6 +131,7 @@ router.get(
         ${qClause}
       order by coalesce(p.fecha_vencimiento, p.fecha_emision) asc, p.created_at desc
       limit ${limit} offset ${offset}
+
     `;
 
     const rows = await withUser(userId, (c) => c.query(sql, params).then((r) => r.rows));
@@ -164,25 +165,25 @@ router.get(
            and rfa.scope in ('read','write','admin')
       )
       select json_build_object(
-        'id', p.id,
-        'fund_id', p.fund_id,
-        'provider_id', p.provider_id,
-        'provider_name', prv.name,
-        'factura_id', p.factura_id,
-        'num_fc', p.num_fc,
-        'detalle', p.detalle,
-        'fecha_emision', p.fecha_emision,
-        'fecha_vencimiento', p.fecha_vencimiento,
-        'fecha_pago', p.fecha_pago,
-        'monto_total', p.monto_total,
-        'monto_pagado', p.monto_pagado,
+        'id',              p.id,
+        'fund_id',         p.fund_id,
+        'provider_id',     p.provider_id,
+        'provider_name',   prv.name,
+        'factura_id',      p.factura_id,
+        'num_fc',          p.num_fc,
+        'detalle',         p.detalle,
+        'fecha_emision',     to_char(p.fecha_emision::date,     'YYYY-MM-DD'),
+        'fecha_vencimiento', to_char(p.fecha_vencimiento::date, 'YYYY-MM-DD'),
+        'fecha_pago',        to_char(p.fecha_pago::date,        'YYYY-MM-DD'),
+        'monto_total',     p.monto_total,
+        'monto_pagado',    p.monto_pagado,
         'saldo_pendiente', p.saldo_pendiente,
-        'metodo_pago', p.metodo_pago,
+        'metodo_pago',     p.metodo_pago,
         'comprobante_url', p.comprobante_url,
-        'estado', p.estado,
-        'notas', p.notas,
-        'created_at', p.created_at,
-        'updated_at', p.updated_at
+        'estado',          p.estado,
+        'notas',           p.notas,
+        'created_at',      to_char(p.created_at::date, 'YYYY-MM-DD'),
+        'updated_at',      to_char(p.updated_at::date, 'YYYY-MM-DD')
       ) as payment
       from app.payments p
       left join app.clients prv on prv.id = p.provider_id
@@ -190,6 +191,7 @@ router.get(
       where p.id = $1
         and (me.is_admin or p.fund_id in (select fund_id from allowed_funds))
       limit 1
+
     `;
 
     const row = await withUser(userId, (c) =>
