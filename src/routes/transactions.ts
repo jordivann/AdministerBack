@@ -88,7 +88,7 @@ router.get('/', async (req: AuthedRequest, res) => {
       )
       select
         v.transaction_id                         as id,
-        v.tx_date,
+        to_char(v.tx_date::date, 'YYYY-MM-DD') as tx_date,
         v.account_id,
         a.name                                   as account_name,
         v.fund_id,
